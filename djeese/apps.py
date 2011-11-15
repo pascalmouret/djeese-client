@@ -13,6 +13,10 @@ REQUIRED_SETTINGS_KEYS = ['name', 'verbose-name', 'type']
 EXTRA_SETTINGS_KEYS = ['default', 'required', 'editable']
 
 def validate_app(config, printer):
+    """
+    Validate an app (AppConfiguration instance) and print errors using the
+    printer (djeese.utils.Printer instance).
+    """
     valid = True
     if 'app' not in config:
         printer.error("Section 'app' not found")
@@ -28,12 +32,15 @@ def validate_app(config, printer):
         if not validate_settings_section(config, printer, setting):
             valid = False
     if valid:
-        printer.info("Configuration valid")
+        printer.always("Configuration valid")
     else:
-        printer.error("Configuration invalid")
+        printer.always("Configuration invalid")
     return valid
 
 def validate_app_section(config, printer):
+    """
+    Validate the [app] section of an app configuration
+    """
     valid = True
     printer.info("Required section 'app' found")
     app = config['app']
@@ -46,6 +53,9 @@ def validate_app_section(config, printer):
     return valid
 
 def validate_templates_section(config, printer):
+    """
+    Validate the [templates] section of an app configuration
+    """
     valid = True
     templates = config['templates'].as_dict()
     reverse_templates = dict([(v,k) for k,v in templates.items()])
@@ -60,6 +70,9 @@ def validate_templates_section(config, printer):
     return valid
 
 def validate_settings_section(config, printer, setting):
+    """
+    Validate the settings section of an app configuration for a setting
+    """
     valid = True
     if setting not in config:
         printer.error("Could not find settings section %r" % setting)
@@ -78,22 +91,37 @@ def validate_settings_section(config, printer, setting):
     return valid
 
 class Section(object):
+    """
+    Wrapper around ConfigParser to make a nicer interface
+    """
     def __init__(self, parser, section):
         self.parser = parser
         self.section = section
     
     def items(self):
+        """
+        Return the items in this section as list of tuples
+        """
         return self.parser.items(self.section)
         
     def as_dict(self):
+        """
+        Return the items in this section as dictionary
+        """
         return dict(self.items())
     
     def get(self, item, default=None):
+        """
+        Get the item in this section
+        """
         if item in self:
             return self[item]
         return default
         
     def getlist(self, item, default=None):
+        """
+        Get the item in this section as list
+        """
         if item in self:
             return [line.strip() for line in self[item].splitlines() if line.strip()]
         if default:
@@ -101,55 +129,94 @@ class Section(object):
         return []
     
     def getint(self, item, default=0):
+        """
+        Get the item in this section as integer
+        """
         if item in self:
             return self.parser.getint(self.section, item)
         return default
     
     def getfloat(self, item, default=0.0):
+        """
+        Get the item in this section as float
+        """
         if item in self:
             return self.parser.getfloat(self.section, item)
         return default
     
     def getboolean(self, item, default=False):
+        """
+        Get the item in this section as boolean
+        """
         if item in self:
             return self.parser.getboolean(self.section, item)
         return default
     
     def __contains__(self, item):
+        """
+        Check if this section contains this item
+        """
         return self.parser.has_option(self.section, item)
         
     def __getitem__(self, item):
+        """
+        Same as self.get, but without the ability to specify a default
+        """
         return self.parser.get(self.section, item)
     
     def __setitem__(self, item, value):
+        """
+        Set an item in this section
+        """
         self.parser.set(self.section, item, value)
         
     def __delitem__(self, item):
+        """
+        Remove an item from this section
+        """
         self.parser.remove_option(self.section, item)
 
 
 class AppConfiguration(object):
+    """
+    Wrapper around SafeConfigParser to provide a nicer API
+    """
     def __init__(self, verbosity=1):
         self.parser = SafeConfigParser()
         self.printer = Printer(verbosity)
         
     def __getitem__(self, item):
+        """
+        Get a section (Section instance) or create it if it doesn't exist.
+        """
         if item not in self:
             self.parser.add_section(item)
         return Section(self.parser, item)
     
     def __contains__(self, item):
+        """
+        Check if this config has a section
+        """
         return self.parser.has_section(item)
     
     def read_string(self, data):
+        """
+        Read the configuration from a string
+        """
         sio = StringIO(data)
         sio.seek(0)
         self.parser.readfp(sio)
     
     def read(self, filepath):
+        """
+        Read the configuration from a filepath
+        """
         self.parser.read(filepath)
     
     def write(self, filepath):
+        """
+        Write the configuration to a filepath
+        """
         if not self.validate():
             return False
         with open(filepath, 'w') as fobj:
@@ -157,4 +224,7 @@ class AppConfiguration(object):
         return True
     
     def validate(self):
+        """
+        Validate this configuration
+        """
         return validate_app(self, self.printer)

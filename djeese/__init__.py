@@ -1,4 +1,6 @@
-# Borrowed mostly from epio-client
+"""
+Borrowed mostly from epio-client
+"""
 
 import optparse
 import os

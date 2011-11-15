@@ -6,6 +6,12 @@ import re
 import requests
 
 class BaseValidator(object):
+    """
+    Base validator object.
+    
+    self.validate(value) calls self.check(value) and if not valid, prints
+    self.message and return False. If valid, returns True
+    """
     def validate(self, value):
         if not self.check(value):
             print self.message % value
@@ -17,6 +23,9 @@ class BaseValidator(object):
 
 
 class URLValidator(BaseValidator):
+    """
+    Checks that a given URL is valid and can be accessed
+    """
     message = "Could not open %r."
     
     def check(self, value):
@@ -24,6 +33,9 @@ class URLValidator(BaseValidator):
 
 
 class RegexValidator(BaseValidator):
+    """
+    Checks that a given value matches a regular expression
+    """
     def __init__(self, regex, message, *flags):
         self.regex = re.compile(regex, *flags)
         self.message = message
@@ -33,11 +45,21 @@ class RegexValidator(BaseValidator):
 
 
 class SlugValidator(RegexValidator):
+    """
+    Checks that a given value is a slug (alphanumeric + underscores + dashes)
+    """
     def __init__(self):
         super(SlugValidator, self).__init__(r'^[-\w]+$', "May only contain alphanumeric characters and dashes")
 
 
 def ask(title, *validators, **kwargs):
+    """
+    Ask for a (single) value, validate using validators.
+    
+    If default is given, it will be returned if no input is given.
+    
+    If required is True, None is returned if no input is given.
+    """
     default = kwargs.get('default', None)
     required = kwargs.get('required', True)
     if default:
@@ -55,6 +77,9 @@ def ask(title, *validators, **kwargs):
     return value
 
 def ask_boolean(title, default=None):
+    """
+    Ask for a (single) boolean value.
+    """
     if default is None:
         message = '%s [y/n]: ' % title
     elif default:
@@ -72,6 +97,9 @@ def ask_boolean(title, default=None):
     ask_boolean(title, default)
 
 def ask_multi(title, minitems=0):
+    """
+    Ask for (at least) minitems values.
+    """
     values = []
     while True:
         value = ask('%s (leave empty for next option)' % title, required=len(values) < minitems)
@@ -86,6 +114,9 @@ def ask_multi(title, minitems=0):
         return None
 
 def ask_choice(title, choices):
+    """
+    Make the user choose a single value from choices
+    """
     choices_dict = dict([(str(index), choice) for index, choice in enumerate(choices)])
     print title
     for index, choice in enumerate(choices):
@@ -97,6 +128,11 @@ def ask_choice(title, choices):
     return choices_dict[value]
 
 def contrib(config, section, key, method, *args, **kwargs):
+    """
+    Wrapper to ask the user for input using `method` (passing `args` and
+    `kwargs` to that method) and if a value is returned, set it in the `config`
+    under `section` and `key`.
+    """
     value = method(*args, **kwargs)
     if value:
         config[section][key] = value

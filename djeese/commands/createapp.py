@@ -1,5 +1,5 @@
 from collections import defaultdict
-from djeese.apps import AppConfiguration
+from djeese.apps import AppConfiguration, VALID_TYPES
 from djeese.commands import BaseCommand
 from djeese.utils import slugify, get_package_data
 import re
@@ -16,7 +16,7 @@ class BaseValidator(object):
         return True
 
 
-class URLValidator(object):
+class URLValidator(BaseValidator):
     message = "Could not open %r."
     
     def check(self, value):
@@ -45,8 +45,10 @@ def ask(title, *validators, **kwargs):
     else:
         message = '%s: ' % title
     value = raw_input(message)
-    if not value and default or not required:
+    if not value and default:
         return default
+    if not value and not required:
+        return None
     for validator in validators:
         if not validator.validate(value):
             return ask(title, *validators)
@@ -61,22 +63,45 @@ def ask_boolean(title, default=None):
         message = '%s [y/N]: ' % title
     value = raw_input(message)
     if not value and default is not None:
-        return default
+        return 'true' if default else 'false'
     elif value in ['y', 'Y']:
-        return True
+        return 'true'
     elif value in ['n', 'N']:
-        return False
+        return 'false'
     print "Please enter either 'n' or 'y'"
     ask_boolean(title, default)
 
 def ask_multi(title, minitems=0):
-    pass
+    values = []
+    while True:
+        value = ask('%s (leave empty for next option)' % title, required=len(values) < minitems)
+        if value:
+            values.append(value)
+        else:
+            break
+    # convert to string:
+    if values:
+        return '\n%s' % '    '.join(values)
+    else:
+        return None
+
+def ask_choice(title, choices):
+    choices_dict = dict([(str(index), choice) for index, choice in enumerate(choices)])
+    print title
+    for index, choice in enumerate(choices):
+        print '(%s) %s' % (index, choice)
+    value = ask("Please choose [0-%s]" % len(choices))
+    while value not in choices_dict:
+        print "Invalid choices"
+        value = ask("Please choose [0-%s]" % len(choices))
+    return choices_dict[value]
 
 def contrib(config, section, key, method, *args, **kwargs):
     value = method(*args, **kwargs)
-    print repr(value)
-    config[section][key] = value
+    if value:
+        config[section][key] = value
     return value
+
 
 class Command(BaseCommand):
     help = 'Create a djeese apps.'
@@ -92,13 +117,22 @@ class Command(BaseCommand):
         else:
             data = defaultdict(lambda:None)
         contrib(config, 'app', 'url', ask, 'URL', default=data['url'])
-        contrib(config, 'app', 'author', ask, 'Author', default=data['author'])
-        contrib(config, 'app', 'author_email', ask, 'Author email', default=data['author_email'])
-        contrib(config, 'app', 'maintainer', ask, 'Maintainer (you)', default=data['author'])
-        contrib(config, 'app', 'installed_apps', ask_multi, "Installed apps", minitems=1)
+        contrib(config, 'app', 'author', ask, 'Author', default=data['author'], required=False)
+        contrib(config, 'app', 'installed-apps', ask_multi, "Installed apps", minitems=1)
         contrib(config, 'app', 'version', ask, 'Version', default=data['version'])
         contrib(config, 'app', 'description', ask, 'Description (short)', default=data['description'])
         contrib(config, 'app', 'license', ask, 'License', default=data['license'])
-        contrib(config, 'app', 'license_text_url', ask, 'License Text (URL)', URLValidator(), default=data['license_text_url'])
+        contrib(config, 'app', 'license-text', ask, 'License Text (URL)', URLValidator(), default=data['license_text_url'])
+        contrib(config, 'app', 'installation', ask, 'Alternative argument to pip install for installation (optional)', required=False)
+        contrib(config, 'app', 'transifex', ask, 'Transifex URL (optional)', URLValidator(), required=False)
+        contrib(config, 'app', 'settings', ask_multi, 'Settings (optional)')
+        for setting in config['app'].getlist('settings'):
+            contrib(config, setting, 'name', ask, 'Name of the setting %r (Python)' % setting)
+            contrib(config, setting, 'verbose-name', ask, 'Verbose name of the setting %r' % setting)
+            contrib(config, setting, 'type', ask_choice, 'Type of the setting %r' % setting, choices=VALID_TYPES)
+            contrib(config, setting, 'default', ask, 'Default value for setting %r (optional)' % setting, required=False)
+            contrib(config, setting, 'required', ask_boolean, 'Is setting %r required' % setting, default=True)
+            if config[setting].get('default', None):
+                contrib(config, setting, 'editable', ask_boolean, 'Is setting %r editable' % setting, default=True)
         fname = '%s.ini' % packagename
         config.write(fname)

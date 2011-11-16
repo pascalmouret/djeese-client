@@ -4,6 +4,7 @@ Application Guidelines
 
 The following rules apply to all applications on djeese:
 
+* You **may** publish awesome applications.
 * You **may not** publish malicious applications.
 * You **may not** publish applications that monkey patch or otherwise
   manipulate other parts of the environment other than through the APIs

@@ -76,11 +76,11 @@ must create a section with the same name. This section has following
 * ``name``: The name of this setting. This is the name used in Python.
 * ``verbose-name``: The verbose name of this setting as used on the djeese site
                     when the user is prompted to configure this setting.
-* ``type``: The type of this setting. Available values are: :describe:`string`,
-            :describe:`stringlist`, :describe:`stringtuplelist` and
-            :describe:`boolean`. 
+* ``type``: The type of this setting. Available values are: :term:`string`,
+            :term:`stringlist`, :term:`stringtuplelist` and
+            :term:`boolean`. 
 
-It may also include following **optional** options:
+It may also include the following **optional** options:
 
 * ``default``: The default value for this setting. Only available for the
                ``string`` type at the moment.
@@ -95,21 +95,19 @@ It may also include following **optional** options:
 Setting types
 -------------
 
-.. describe:: string
+.. glossary::
 
-    A simple string. For example ``"hello world"``.
+    string
+        A simple string. For example ``"hello world"``.
 
-.. describe:: stringlist
+    stringlist
+        A list of strings. For example ``['hello', 'world']``.
 
-    A list of strings. For example ``['hello', 'world']``.
+    stringtuplelist
+        A list of tuples of strings. For example ``[('en', 'English')]``.
 
-.. describe:: stringtuplelist
-
-    A list of tuples of strings. For example ``[('en', 'English')]``.
-
-.. describe:: boolean
-
-    A boolean flag (``True`` or ``False``).
+    boolean
+        A boolean flag (``True`` or ``False``).
 
 
 An Example

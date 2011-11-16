@@ -46,14 +46,13 @@ Application Configuration file. It has following **required** options:
 
 It may further have following **optional** options:
 
-* ``installation``: Alternative method of installation using pip. The string
-                    here will be passed to ``pip install``. This option should
-                    be avoided if possible.
 * ``settings``: A list of settings this application exposes. The names given
                 here do not have to be the actual setting names, but are merely
                 references to a section with the same name in this file.
 * ``author``: The name of the author of this application.
-* ``transifex``: Link to the transifex page of your application if you have one.
+* ``author-url``: The URL to the authors website.
+* ``translation-url``: Link to the translation page for this project, for
+                       example the transifex page.
 
 
 The ``templates`` section

@@ -123,6 +123,17 @@ def _find_license_url(repourl, version):
         return _find_license_url_bitbucket(scheme, netloc, path, version)
     else:
         return None
+    
+def _find_author_url(repourl):
+    """
+    Try to find the Author URL if the URL is on github or bitbucket.
+    """
+    scheme, netloc, path, _, _ = urlparse.urlsplit(repourl)
+    if netloc in ['github.com', 'bitbucket.org']:
+        newpath = '/'.join(path.split('/')[:2])
+        return urlparse.urlunsplit((scheme, netloc, newpath, '', ''))
+    else:
+        return None
 
 def _transform_djangopackages(data):
     """
@@ -138,6 +149,7 @@ def _transform_djangopackages(data):
             data['license_text_url'] = license_text_url
     data['description'] = data.pop('repo_description', None)
     data['url'] = url
+    data['author_url'] = _find_author_url(url)
     return data
 
 def get_djangopackages_data(slug):

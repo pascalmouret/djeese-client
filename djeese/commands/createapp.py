@@ -154,13 +154,13 @@ class Command(BaseCommand):
             data = defaultdict(lambda:None)
         contrib(config, 'app', 'url', ask, 'URL', default=data['url'])
         contrib(config, 'app', 'author', ask, 'Author', default=data['author'], required=False)
+        contrib(config, 'app', 'author-url', ask, 'Author URL (optional)', default=data['author_url'], required=False)
         contrib(config, 'app', 'installed-apps', ask_multi, "Installed apps", minitems=1)
         contrib(config, 'app', 'version', ask, 'Version', default=data['version'])
         contrib(config, 'app', 'description', ask, 'Description (short)', default=data['description'])
         contrib(config, 'app', 'license', ask, 'License', default=data['license'])
         contrib(config, 'app', 'license-text', ask, 'License Text (URL)', URLValidator(), default=data['license_text_url'])
-        contrib(config, 'app', 'installation', ask, 'Alternative argument to pip install for installation (optional)', required=False)
-        contrib(config, 'app', 'transifex', ask, 'Transifex URL (optional)', URLValidator(), required=False)
+        contrib(config, 'app', 'translation-url', ask, 'URL to the translation page, eg transifex (optional)', URLValidator(), required=False)
         contrib(config, 'app', 'settings', ask_multi, 'Settings (optional)')
         for setting in config['app'].getlist('settings'):
             contrib(config, setting, 'name', ask, 'Name of the setting %r (Python)' % setting)
@@ -170,5 +170,12 @@ class Command(BaseCommand):
             contrib(config, setting, 'required', ask_boolean, 'Is setting %r required' % setting, default=True)
             if config[setting].get('default', None):
                 contrib(config, setting, 'editable', ask_boolean, 'Is setting %r editable' % setting, default=True)
+        if ask_boolean("Does your application expose templates?", default=True) == 'true':
+            while True:
+                name = ask('Template path (eg %s/plugin.html)' % config['app']['packagename'])
+                url = ask('URL to the source of the template', URLValidator())
+                config['templates'][name] = url
+                if ask_boolean("Are there more templates?") == 'false':
+                    break
         fname = '%s.ini' % packagename
         config.write(fname)

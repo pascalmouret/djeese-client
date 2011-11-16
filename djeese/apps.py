@@ -8,7 +8,7 @@ from djeese.utils import check_urls
 VALID_TYPES = ['string', 'stringtuplelist', 'stringlist', 'boolean']
 REQUIRED_APP_KEYS = ['name', 'packagename', 'installed-apps', 'description',
                      'license-text', 'license', 'url', 'version']
-EXTRA_APP_KEYS = ['installation', 'settings', 'author', 'transifex']
+EXTRA_APP_KEYS = ['settings', 'author', 'author-url', 'translation-url']
 REQUIRED_SETTINGS_KEYS = ['name', 'verbose-name', 'type']
 EXTRA_SETTINGS_KEYS = ['default', 'required', 'editable']
 

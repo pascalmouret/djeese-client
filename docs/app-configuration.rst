@@ -120,27 +120,29 @@ This is an example Djeese Application Configuration for the `CMSPlugin Disqus`_.
 .. code-block:: ini
 
     [app]
-    name = Disqus Plugin
+    name = CMSPlugin disqus
     packagename = cmsplugin-disqus
+    url = https://github.com/djeese/cmsplugin-disqus
     author = Djeese Factory GmbH
-    version = 1.0
-    installation = -e git+https://github.com/djeese/cmsplugin-djeese.git#egg=cmsplugin-djeese
-    installed-apps =
+    author-url = https://github.com/djeese
+    installed-apps = 
         cmsplugin_disqus
-    description = Disqus Plugin
+    version = 1.0
+    description = Disqus plugin for django CMS
     license = BSD
     license-text = https://raw.github.com/djeese/cmsplugin-disqus/master/LICENSE.txt
-    url = https://github.com/djeese/cmsplugin-disqus
-    settings =
+    translation-url = https://raw.github.com/djeese/cmsplugin-disqus/master/LICENSE.txt
+    settings = 
         shortname
-    
-    [templates]
-    cmsplugin_disqus/disqus_plugin.html = https://raw.github.com/djeese/cmsplugin-disqus/master/cmsplugin_disqus/templates/cmsplugin_disqus/disqus_plugin.html
     
     [shortname]
     name = DISQUS_SHORTNAME
     verbose-name = Disqus Site Shortname
     type = string
+    required = true
+    
+    [templates]
+    cmsplugin_disqus/disqus_plugin.html = https://raw.github.com/djeese/cmsplugin-disqus/master/cmsplugin_disqus/templates/cmsplugin_disqus/disqus_plugin.html
 
 
 .. _ConfigParser: http://docs.python.org/library/configparser.html

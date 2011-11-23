@@ -99,6 +99,7 @@ class Command(BaseCommand):
             }
             session = requests.session()
             response = session.post(LOGIN_URL, {'username': username, 'password': password})
-            if not response.status_code == 204:
+            if response.status_code != 204:
                 return response 
-            return session.post(TARGET_URL, data=data, files=files)
+            response = session.post(TARGET_URL, data=data, files=files)
+            return response

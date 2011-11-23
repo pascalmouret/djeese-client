@@ -31,6 +31,7 @@ class Command(BaseCommand):
             data = get_package_data(packagename)
         else:
             data = defaultdict(lambda:None)
+        contrib(config, 'app', 'private', ask_boolean, "Private")
         contrib(config, 'app', 'url', ask, 'URL', default=data['url'])
         contrib(config, 'app', 'author', ask, 'Author', default=data['author'], required=False)
         contrib(config, 'app', 'author-url', ask, 'Author URL (optional)', default=data['author_url'], required=False)

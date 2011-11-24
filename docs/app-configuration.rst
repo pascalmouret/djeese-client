@@ -35,7 +35,9 @@ Application Configuration file. It has following **required** options:
 
 * ``name``: The (unique) verbose name of your application.
 * ``packagename``: The package name of your application.
-* ``version``: The version of your application this configuration file describes.
+* ``version``: The version of your application this configuration file
+               describes. This does not have to be a version available on PyPI
+               but rather is an internal version for djeese.
 * ``installed-apps``: A list of application names this application needs to
                       have in Django's ``INSTALLED_APPS`` setting.
 * ``description``: A description of your application. May be multiple lines.
@@ -53,7 +55,10 @@ It may further have following **optional** options:
 * ``author-url``: The URL to the authors website.
 * ``translation-url``: Link to the translation page for this project, for
                        example the transifex page.
-
+* ``plugins``: A list of plugin (class) names this application provides.
+               Required for successful uninstallations.
+* ``apphooks``: A list of apphook (class) names this application provides.
+                Required for successful uninstallations.
 
 The ``templates`` section
 =========================
@@ -120,18 +125,21 @@ This is an example Djeese Application Configuration for the `CMSPlugin Disqus`_.
     [app]
     name = CMSPlugin disqus
     packagename = cmsplugin-disqus
+    private = false
     url = https://github.com/djeese/cmsplugin-disqus
     author = Djeese Factory GmbH
     author-url = https://github.com/djeese
     installed-apps = 
         cmsplugin_disqus
-    version = 1.0
+    version = 1.0.0.2
     description = Disqus plugin for django CMS
     license = BSD
     license-text = https://raw.github.com/djeese/cmsplugin-disqus/master/LICENSE.txt
     translation-url = https://raw.github.com/djeese/cmsplugin-disqus/master/LICENSE.txt
     settings = 
         shortname
+    plugins = 
+        DisqusPlugin
     
     [shortname]
     name = DISQUS_SHORTNAME
@@ -141,6 +149,7 @@ This is an example Djeese Application Configuration for the `CMSPlugin Disqus`_.
     
     [templates]
     cmsplugin_disqus/disqus_plugin.html = https://raw.github.com/djeese/cmsplugin-disqus/master/cmsplugin_disqus/templates/cmsplugin_disqus/disqus_plugin.html
+
 
 
 .. _ConfigParser: http://docs.python.org/library/configparser.html

@@ -42,6 +42,8 @@ class Command(BaseCommand):
         contrib(config, 'app', 'license-text', ask, 'License Text (URL)', URLValidator(), default=data['license_text_url'])
         contrib(config, 'app', 'translation-url', ask, 'URL to the translation page, eg transifex (optional)', URLValidator(), required=False)
         contrib(config, 'app', 'settings', ask_multi, 'Settings (optional)')
+        contrib(config, 'app', 'plugins', ask_multi, 'Plugin (class) names (optional)')
+        contrib(config, 'app', 'apphook', ask_multi, 'Apphook (class) names (optional)')
         for setting in config['app'].getlist('settings'):
             contrib(config, setting, 'name', ask, 'Name of the setting %r (Python)' % setting)
             contrib(config, setting, 'verbose-name', ask, 'Verbose name of the setting %r' % setting)

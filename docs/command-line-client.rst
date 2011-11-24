@@ -66,4 +66,11 @@ Following options are available to all subcommands:
 Validates the Djeese Application Configuration in ``<filepath>``.
 
 
+``djeese uploadapp <setup.py> <filename>``
+==========================================
+
+Builds and uploads an application to djeese. The ``<setup.py>`` is the file to
+install your application. ``<filepath>`` is the path to your Djeese Application
+Configuration file.
+
 .. _pip website: http://www.pip-installer.org/en/latest/installing.html

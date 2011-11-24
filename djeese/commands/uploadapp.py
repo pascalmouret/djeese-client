@@ -46,7 +46,7 @@ class Command(BaseCommand):
         if not (username and password):
             username = ask("Username")
             password = ask_password("Password:")
-            if ask_boolean("Save login data?", default=True):
+            if ask_boolean("Save login data?", default=True) == 'true':
                 fobj = open(AUTH_FILE, 'w')
                 try:
                     data = fobj.write(u'%s:%s' % (username, password))

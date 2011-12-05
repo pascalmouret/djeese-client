@@ -12,6 +12,7 @@ Welcome to Djeese's documentation!
     app-guidelines
     app-configuration
     command-line-client
+    support
 
 Indices and tables
 ==================

@@ -3,11 +3,15 @@ from ConfigParser import SafeConfigParser
 from StringIO import StringIO
 from djeese.printer import Printer
 from djeese.utils import check_urls
+import os
 
 
 VALID_TYPES = ['string', 'stringtuplelist', 'stringlist', 'boolean']
 REQUIRED_APP_KEYS = ['name', 'packagename', 'installed-apps', 'description',
-                     'license-text', 'license', 'url', 'version', 'private']
+                     'license', 'url', 'version', 'private']
+DEPRECATION_APP_KEYS = {
+    'license-text': 'license-path',
+}
 EXTRA_APP_KEYS = ['settings', 'author', 'author-url', 'translation-url',
                   'plugins', 'apphooks']
 REQUIRED_SETTINGS_KEYS = ['name', 'verbose-name', 'type']
@@ -51,6 +55,12 @@ def validate_app_section(config, printer):
             valid = False
         else:
             printer.info("Required option '%s' found in 'app' section" % required)
+    for old, new in DEPRECATION_APP_KEYS.items():
+        if old not in app and new not in app:
+            printer.error("Option '%s' not found in 'app' section" % new)
+            valid = False
+        elif old in app:
+            printer.warning("Option '%s' in 'app' section is deprecated, use '%s' instead" % (old, new)) 
     return valid
 
 def validate_templates_section(config, printer):
@@ -60,14 +70,27 @@ def validate_templates_section(config, printer):
     valid = True
     templates = config['templates'].as_dict()
     reverse_templates = dict([(v,k) for k,v in templates.items()])
-    responses = check_urls(templates.values())
-    for url, success in responses:
-        name = reverse_templates[url]
-        if not success:
-            printer.error("Could not load template %r from %r" % (name, url))
-            valid = False
+    urls = []
+    paths = []
+    for path in templates.values():
+        if path.startswith(('http://', 'https://')):
+            printer.warning("Template loading from URLs is deprecated.")
+            urls.append(path)
         else:
-            printer.info("Successfully loaded %r from %r" % (name, url))
+            paths.append(path)
+    if urls:
+        responses = check_urls(urls)
+        for url, success in responses:
+            name = reverse_templates[url]
+            if not success:
+                printer.error("Could not load template %r from %r" % (name, url))
+                valid = False
+            else:
+                printer.info("Successfully loaded %r from %r" % (name, url))
+    for path in paths:
+        if not os.path.exists(path):
+            printer.warning("Template '%s' not found" % path)
+            valid = False
     return valid
 
 def validate_settings_section(config, printer, setting):
@@ -182,9 +205,9 @@ class AppConfiguration(object):
     """
     Wrapper around SafeConfigParser to provide a nicer API
     """
-    def __init__(self, verbosity=1):
+    def __init__(self, verbosity=1, printer=None):
         self.parser = SafeConfigParser()
-        self.printer = Printer(verbosity)
+        self.printer = printer or Printer(verbosity)
         
     def __getitem__(self, item):
         """
@@ -207,6 +230,9 @@ class AppConfiguration(object):
         sio = StringIO(data)
         sio.seek(0)
         self.parser.readfp(sio)
+        
+    def readfp(self, fp):
+        self.parser.readfp(fp)
     
     def read(self, filepath):
         """
@@ -222,6 +248,12 @@ class AppConfiguration(object):
             return False
         with open(filepath, 'w') as fobj:
             self.parser.write(fobj)
+        return True
+    
+    def write_file(self, fobj):
+        if not self.validate():
+            return False
+        self.parser.write(fobj)
         return True
     
     def validate(self):

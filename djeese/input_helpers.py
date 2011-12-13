@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import getpass
+import os
 import re
 import requests
 
@@ -18,6 +19,13 @@ class BaseValidator(object):
     
     def check(self, value):
         return True
+    
+    
+class PathValidator(BaseValidator):
+    message = "File not found: %r"
+    
+    def check(self, value):
+        return os.path.exists(value)
 
 
 class URLValidator(BaseValidator):

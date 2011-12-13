@@ -42,7 +42,8 @@ Application Configuration file. It has following **required** options:
                       have in Django's ``INSTALLED_APPS`` setting.
 * ``description``: A description of your application. May be multiple lines.
 * ``license``: The license type of this application (BSD, MIT, proprietary, ...).
-* ``license-text``: A (accessible) URL to the full license text of this application.
+* ``license-path``: Path to the license text file. Must be accessible when
+                    running ``uploadapp``.
 * ``url``: The URL to your applications project page.
 
 
@@ -68,7 +69,8 @@ djeese by the users. For CMS Plugins this should include the template that gets
 rendered by the plugin. Admin templates can and probably should be omitted.
 
 The keys to this section are the template paths as used by Django's template
-system. The values are a link to the template source code.
+system. The values are paths to the template source code, which must be
+accessible when running ``uploadapp``.
 
 
 The setting sections
@@ -134,7 +136,7 @@ This is an example Djeese Application Configuration for the `CMSPlugin Disqus`_.
     version = 1.0.0.2
     description = Disqus plugin for django CMS
     license = BSD
-    license-text = https://raw.github.com/djeese/cmsplugin-disqus/master/LICENSE.txt
+    license-path = LICENSE.txt
     translation-url = https://raw.github.com/djeese/cmsplugin-disqus/master/LICENSE.txt
     settings = 
         shortname
@@ -148,7 +150,7 @@ This is an example Djeese Application Configuration for the `CMSPlugin Disqus`_.
     required = true
     
     [templates]
-    cmsplugin_disqus/disqus_plugin.html = https://raw.github.com/djeese/cmsplugin-disqus/master/cmsplugin_disqus/templates/cmsplugin_disqus/disqus_plugin.html
+    cmsplugin_disqus/disqus_plugin.html = cmsplugin_disqus/templates/cmsplugin_disqus/disqus_plugin.html
 
 
 

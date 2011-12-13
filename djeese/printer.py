@@ -1,15 +1,25 @@
 # -*- coding: utf-8 -*-
+import os
 
+LEVELS = {
+    4: 'LOG',
+    3: 'INFO', 
+    2: 'WARNING', 
+    1: 'ERROR',
+    -1: 'CRITICAL',
+}
 
 class Printer(object):
     """
     Helper object to print certain types of information only if the verbosity
     level given is high enough.
     """
-    def __init__(self, verbosity):
+    def __init__(self, verbosity, logfile=None):
         self.verbosity = verbosity
+        self.logfile = open(logfile, 'w') if logfile else open(os.devnull, 'w')
     
     def _print(self, level, message):
+        self.logfile.write('[%s]%s\n' % (LEVELS[level], message))
         if self.verbosity >= level:
             print message
     
@@ -33,4 +43,7 @@ class Printer(object):
         
     def always(self, message):
         self._print(-1, message)
+    
+    def log_only(self, message):
+        self._print(4, message)
     

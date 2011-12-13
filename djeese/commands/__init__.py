@@ -1,8 +1,10 @@
 from djeese.printer import Printer
 from optparse import make_option, OptionParser
 import djeese
+import os
 import re
 import sys
+import urlparse
 
 class CommandError(Exception):
     """
@@ -29,6 +31,11 @@ class BaseCommand(object):
     )
     help = ''
     args = ''
+    
+    def get_absolute_url(self, path):
+        host = os.environ.get('DJEESE_HOST', 'https://control.djeese.com')
+        scheme, netloc, _, query, fragment = urlparse.urlsplit(host)
+        return urlparse.urlunsplit((scheme, netloc, path, query, fragment))
     
     def usage(self, subcommand):
         """

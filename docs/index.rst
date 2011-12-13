@@ -9,6 +9,7 @@ Welcome to Djeese's documentation!
 .. toctree::
     :maxdepth: 2
     
+    app-quickstart
     app-guidelines
     app-configuration
     command-line-client

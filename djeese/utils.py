@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
+from StringIO import StringIO
 from collections import defaultdict
+import os
 import re
 import requests
+import shutil
+import subprocess
+import tarfile
+import tempfile
 import unicodedata
 import urlparse
 import xmlrpclib
@@ -20,14 +26,6 @@ except RuntimeError:
             return rs
     async = dummy_async()
 
-
-LICENSE_FILE_CANDIDATES = [
-    'license',
-    'license.txt',
-    'LICENSE',
-    'LICENSE.txt',
-    'LICENSE.TXT',
-]
 
 PYPI_KEYS = [
     'author',
@@ -87,43 +85,6 @@ def get_pypi_data(slug):
     data = client.release_data(slug, release)
     return _transform_pypi(data)
 
-def _find_license_url_bitbucket(scheme, netloc, path, tag):
-    """
-    Try to find the URL to the license text on bitbucket given a bitbucket
-    repository URL (urlsplitted) and a version (tag).
-    """
-    for candidate in LICENSE_FILE_CANDIDATES:
-        newpath = '%sraw/%s/%s' % (path, tag, candidate)
-        url = urlparse.urlunsplit((scheme, netloc, newpath, '', ''))
-        if _check_url(url):
-            return url
-    return None
-
-def _find_license_url_github(scheme, netloc, path, tag):
-    """
-    Try to find the URL to the license text on github given a github
-    repository URL (urlsplitted) and a version (tag).
-    """
-    for candidate in LICENSE_FILE_CANDIDATES:
-        newpath = '%s/%s/%s' % (path, tag, candidate)
-        newnetloc = 'raw.%s' % netloc
-        url = urlparse.urlunsplit((scheme, newnetloc, newpath, '', ''))
-        if _check_url(url):
-            return url
-    return None
-
-def _find_license_url(repourl, version):
-    """
-    Try to find the URL to the license text either on github or bitbucket.
-    """
-    scheme, netloc, path, _, _ = urlparse.urlsplit(repourl)
-    if netloc == 'github.com':
-        return _find_license_url_github(scheme, netloc, path, version)
-    elif netloc == 'bitbucket.org':
-        return _find_license_url_bitbucket(scheme, netloc, path, version)
-    else:
-        return None
-    
 def _find_author_url(repourl):
     """
     Try to find the Author URL if the URL is on github or bitbucket.
@@ -140,13 +101,7 @@ def _transform_djangopackages(data):
     Process djangopackages data. 
     """
     url = data.get('repo_url', None)
-    version = data.get('pypi_version', None)
     data = dict([(key, value) for key, value in data.items() if key in DJANGOPACKAGES_KEYS])
-    data['license_text_url'] = None
-    if url and version:
-        license_text_url = _find_license_url(url, version)
-        if license_text_url:
-            data['license_text_url'] = license_text_url
     data['description'] = data.pop('repo_description', None)
     data['url'] = url
     data['author_url'] = _find_author_url(url)
@@ -171,3 +126,55 @@ def get_package_data(slug):
     data.update(get_pypi_data(slug))
     data.update(get_djangopackages_data(slug))
     return data
+
+def _bundle(workspace, setuppy, config):
+    """
+    Does the actual bundling for `bundle`.
+    """
+    fnull = open(os.devnull, 'w')
+    try:
+        subprocess.check_call(['python', setuppy, 'sdist', '-d', workspace], stdout=fnull, stderr=fnull)
+    finally:
+        fnull.close()
+    eggfile = os.path.join(workspace, os.listdir(workspace)[0])
+    bundle = StringIO()
+    tarball = tarfile.open(fileobj=bundle, mode='w:gz')
+    # add the egg
+    tarball.add(eggfile, arcname='package.tar.gz')
+    # add templates
+    templates = config['templates'].as_dict()
+    for arcname, fpath in templates.items():
+        full_arcname = 'templates/%s' % arcname
+        # backwards compatibility, check for URL:
+        if fpath.startswith(('http://', 'https://')):
+            response = requests.get(fpath)
+            tarball.addfile(tarfile.TarInfo(full_arcname), response)
+        else:
+            tarball.add(fpath, arcname=full_arcname)
+    # add license
+    # backwards compatibility, check for old license-text option:
+    if 'license-path' in config['app']:
+        tarball.add(config['app']['license-path'], arcname='meta/LICENSE.txt')
+    else:
+        response = requests.get(config['app']['license-text'])
+        tarball.addfile(tarfile.TarInfo('meta/LICENSE.txt'), response)
+    # add the config
+    configpath = os.path.join(workspace, 'config')
+    with open(configpath, 'w') as fobj:
+        config.write_file(fobj)
+    tarball.add(configpath, 'meta/config.cfg')
+    # close, seek, return
+    tarball.close()
+    bundle.seek(0)
+    return bundle
+
+def bundle_app(setuppy, config):
+    """
+    Bundles a setup.py and all other files required (templates/license) into
+    a StringIO bundle (gzipped)
+    """
+    distdir = tempfile.mkdtemp(prefix='djeese')
+    try:
+        return _bundle(distdir, setuppy, config)
+    finally:
+        shutil.rmtree(distdir)

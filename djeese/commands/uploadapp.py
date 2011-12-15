@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 from djeese.apps import AppConfiguration
-from djeese.commands import BaseCommand, CommandError
-from djeese.input_helpers import ask, ask_password, ask_boolean
+from djeese.commands import BaseCommand, CommandError, LOGIN_PATH
 from djeese.printer import Printer
 from djeese.utils import bundle_app
+from optparse import make_option
 import os
 import requests
 
 
 UPLOAD_PATH = '/api/v1/apps/upload-bundle/'
-LOGIN_PATH = '/api/v1/login/'
-
-AUTH_FILE = os.path.join(os.path.expanduser('~'), '.djeese')
 
 ERR_UNKNOWN = 0
 ERR_INVALID_TAR = 1
@@ -27,6 +24,11 @@ ERR_PRIVATE_APP_QUOTA = 10
 
 class Command(BaseCommand):
     help = 'Upload an app.'
+    option_list = BaseCommand.option_list + (
+        make_option( '--noinput', action='store_true', dest='noinput', default=False,
+            help='Do not ask for input. Always assume yes.'
+        ),
+    )
 
     def handle(self, setupfile=None, appfile=None, **options):
         if not setupfile:
@@ -37,29 +39,8 @@ class Command(BaseCommand):
             raise CommandError("Could not find setup.py at %r" % setupfile)
         if not os.path.exists(appfile):
             raise CommandError("Could not find setup.py at %r" % appfile)
-        username, password = self.get_auth()
+        username, password = self.get_auth(options['noinput'])
         self.run(setupfile, appfile, username, password, **options)
-    
-    def get_auth(self):
-        username, password = None, None
-        if os.path.exists(AUTH_FILE):
-            fobj = open(AUTH_FILE)
-            try:
-                data = fobj.read()
-            finally:
-                fobj.close()
-            if data.count(':') == 1:
-                username, password = [bit.strip() for bit in data.split(':')]
-        if not (username and password):
-            username = ask("Username")
-            password = ask_password("Password:")
-            if ask_boolean("Save login data?", default=True) == 'true':
-                fobj = open(AUTH_FILE, 'w')
-                try:
-                    data = fobj.write(u'%s:%s' % (username, password))
-                finally:
-                    fobj.close()
-        return username, password
 
     def run(self, setupfile, appfile, username, password, **options):
         printer = Printer(int(options['verbosity']), logfile='djeese.log')

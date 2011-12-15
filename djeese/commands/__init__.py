@@ -1,3 +1,4 @@
+from djeese.input_helpers import ask, ask_password, ask_boolean
 from djeese.printer import Printer
 from optparse import make_option, OptionParser
 import djeese
@@ -5,6 +6,9 @@ import os
 import re
 import sys
 import urlparse
+
+AUTH_FILE = os.path.join(os.path.expanduser('~'), '.djeese')
+LOGIN_PATH = '/api/v1/login/'
 
 class CommandError(Exception):
     """
@@ -36,6 +40,27 @@ class BaseCommand(object):
         host = os.environ.get('DJEESE_HOST', 'https://control.djeese.com')
         scheme, netloc, _, query, fragment = urlparse.urlsplit(host)
         return urlparse.urlunsplit((scheme, netloc, path, query, fragment))
+    
+    def get_auth(self, save=False):
+        username, password = None, None
+        if os.path.exists(AUTH_FILE):
+            fobj = open(AUTH_FILE)
+            try:
+                data = fobj.read()
+            finally:
+                fobj.close()
+            if data.count(':') == 1:
+                username, password = [bit.strip() for bit in data.split(':')]
+        if not (username and password):
+            username = ask("Username")
+            password = ask_password("Password:")
+            if save or ask_boolean("Save login data?", default=True) == 'true':
+                fobj = open(AUTH_FILE, 'w')
+                try:
+                    data = fobj.write(u'%s:%s' % (username, password))
+                finally:
+                    fobj.close()
+        return username, password
     
     def usage(self, subcommand):
         """

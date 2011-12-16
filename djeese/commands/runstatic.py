@@ -1,3 +1,4 @@
+from __future__ import with_statement
 from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 from SocketServer import ForkingMixIn
@@ -38,7 +39,6 @@ class StaticHandler(SimpleHTTPRequestHandler):
         self.send_header('Content-Length', len(message))
         self.end_headers()
         self.wfile.write(message)
-        
     
     def serve_file(self, filepath):
         """

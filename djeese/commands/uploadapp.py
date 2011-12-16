@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import with_statement
+from djeese import errorcodes
 from djeese.apps import AppConfiguration
 from djeese.commands import BaseCommand, CommandError, LOGIN_PATH
 from djeese.printer import Printer
@@ -10,17 +12,6 @@ import requests
 
 UPLOAD_PATH = '/api/v1/apps/upload-bundle/'
 
-ERR_UNKNOWN = 0
-ERR_INVALID_TAR = 1
-ERR_ACCESS_DENIED = 2
-ERR_NO_PACKAGE = 3
-ERR_NO_LICENSE = 4
-ERR_NO_CONFIG = 5
-ERR_INVALID_CONFIG = 6
-ERR_MISSING_TEMPLATE = 7
-ERR_NAME_MISMATCH = 8
-ERR_VERSION_TOO_LOW = 9
-ERR_PRIVATE_APP_QUOTA = 10
 
 class Command(BaseCommand):
     help = 'Upload an app.'
@@ -70,31 +61,31 @@ class Command(BaseCommand):
     def handle_bad_request(self, response, printer):
         code = int(response.headers.get('X-DJEESE-ERROR-CODE', 0))
         meta = response.headers.get('X-DJEESE-ERROR-META', '')
-        if code == ERR_UNKNOWN:
+        if code == errorcodes.UNKNOWN:
             if meta:
                 printer.error('Unknown error: %s' % meta)
             else:
                 printer.error('Unknown error')
-        elif code == ERR_INVALID_TAR:
+        elif code == errorcodes.INVALID_TAR:
             printer.error("Invalid tar file supplied")
-        elif code == ERR_ACCESS_DENIED:
+        elif code == errorcodes.ACCESS_DENIED:
             printer.error("Access denied")
-        elif code == ERR_NO_PACKAGE:
+        elif code == errorcodes.NO_PACKAGE:
             printer.error("Package file missing from upload")
-        elif code == ERR_NO_LICENSE:
+        elif code == errorcodes.NO_LICENSE:
             printer.error("License file missing from upload")
-        elif code == ERR_NO_CONFIG:
+        elif code == errorcodes.NO_CONFIG:
             printer.error("Configuration missing from upload")
-        elif code == ERR_INVALID_CONFIG:
+        elif code == errorcodes.INVALID_CONFIG:
             printer.error("Invalid configuration")
-        elif code == ERR_MISSING_TEMPLATE:
+        elif code == errorcodes.MISSING_TEMPLATE:
             printer.error("Missing template %r" % meta)
-        elif code == ERR_NAME_MISMATCH:
+        elif code == errorcodes.NAME_MISMATCH:
             printer.error("Supplied name does not match name in configuration")
-        elif code == ERR_VERSION_TOO_LOW:
+        elif code == errorcodes.VERSION_TOO_LOW:
             server, supplied = meta.split(',')
             printer.error("Supplied version (%s) is not newer than version on server (%s)" % (supplied, server))
-        elif code == ERR_PRIVATE_APP_QUOTA:
+        elif code == errorcodes.PRIVATE_APP_QUOTA:
             printer.error("Cannot add new private app, please upgrade your plan")
         else:
             printer.error("Unexpected error code: %s (%s)" % (code, meta))

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import with_statement
 from djeese.commands import BaseCommand, CommandError, LOGIN_PATH
 from djeese.input_helpers import ask_boolean
 from djeese.printer import Printer

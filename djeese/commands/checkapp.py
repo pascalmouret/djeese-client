@@ -1,3 +1,4 @@
+from __future__ import with_statement
 from djeese.apps import AppConfiguration
 from djeese.commands import BaseCommand, CommandError
 import os

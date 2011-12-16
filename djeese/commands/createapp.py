@@ -1,3 +1,4 @@
+from __future__ import with_statement
 from collections import defaultdict
 from djeese.apps import AppConfiguration, VALID_TYPES
 from djeese.commands import BaseCommand

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import with_statement
 from ConfigParser import SafeConfigParser
 from StringIO import StringIO
 from djeese.printer import Printer

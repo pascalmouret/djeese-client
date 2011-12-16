@@ -41,7 +41,7 @@ class BaseCommand(object):
         scheme, netloc, _, query, fragment = urlparse.urlsplit(host)
         return urlparse.urlunsplit((scheme, netloc, path, query, fragment))
     
-    def get_auth(self, save=False):
+    def get_auth(self, noinput=False):
         username, password = None, None
         if os.path.exists(AUTH_FILE):
             fobj = open(AUTH_FILE)
@@ -54,7 +54,7 @@ class BaseCommand(object):
         if not (username and password):
             username = ask("Username")
             password = ask_password("Password:")
-            if save or ask_boolean("Save login data?", default=True) == 'true':
+            if noinput or ask_boolean("Save login data?", default=True) == 'true':
                 fobj = open(AUTH_FILE, 'w')
                 try:
                     data = fobj.write(u'%s:%s' % (username, password))

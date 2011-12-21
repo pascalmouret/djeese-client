@@ -18,7 +18,7 @@ EXTRA_APP_KEYS = ['settings', 'author', 'author-url', 'translation-url',
 REQUIRED_SETTINGS_KEYS = ['name', 'verbose-name', 'type']
 EXTRA_SETTINGS_KEYS = ['default', 'required', 'editable']
 
-def validate_app(config, printer):
+def validate_app(config, validate_templates, printer):
     """
     Validate an app (AppConfiguration instance) and print errors using the
     printer (djeese.utils.Printer instance).
@@ -30,7 +30,7 @@ def validate_app(config, printer):
     else:
         if not validate_app_section(config, printer):
             valid = False
-    if 'templates' in config:
+    if 'templates' in config and validate_templates:
         if not validate_templates_section(config, printer):
             valid = False
     settings = config['app'].getlist('settings')
@@ -257,8 +257,8 @@ class AppConfiguration(object):
         self.parser.write(fobj)
         return True
     
-    def validate(self):
+    def validate(self, validate_templates=True):
         """
         Validate this configuration
         """
-        return validate_app(self, self.printer)
+        return validate_app(self, validate_templates, self.printer)

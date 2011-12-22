@@ -116,7 +116,7 @@ def ask_multi(title, minitems=0):
             break
     # convert to string:
     if values:
-        return '\n%s' % '    '.join(values)
+        return '\n    %s' % '\n    '.join(values)
     else:
         return None
 
